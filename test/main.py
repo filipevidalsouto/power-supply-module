@@ -1,6 +1,6 @@
 from machine import Pin
-from src.example import Example
-from util.bus import SPI
+from src.power_supply import PowerSupply
+import time
 
 def has_method(o, name):
     return callable(getattr(o, name, None))
@@ -16,11 +16,11 @@ def main():
 
     led_internal.value(1)
 
-    read_interval_ms = 1000 
+    read_interval = 1
 
     sensors = {
         # nome do sensor: nome da classe()
-        "example_sensor": Example(SPI(port=1)) # passe como parâmetro a instância do barramento que está conectado à determinada porta
+        "power_supply_sensor": PowerSupply()
     }
 
     # inicialização de cada sensor (se o método setup existe)
@@ -36,7 +36,7 @@ def main():
         print(read_map)
 
         led_internal.toggle() # internal led toggle
-        time.sleep_ms(read_interval_ms)
+        time.sleep(read_interval)
 
 if __name__ == "__main__":
     main()
