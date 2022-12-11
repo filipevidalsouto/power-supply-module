@@ -2,12 +2,6 @@ from machine import ADC
 
 class PowerSupply:
 
-    # Read Options
-    BATTERY_VOLTAGE = 0
-    PANEL_VOLTAGE = 1
-    VSYS_VOLTAGE = 2
-    BATTERY_PERCENTAGE = 3
-
     # ADC defines
     adc_ref_voltage = 3.3
     adc_bit_resolution = 12
@@ -32,42 +26,30 @@ class PowerSupply:
         self.adc1 = ADC(27)
         self.vsys = ADC(29)
 
-    def read(self, read_opt):
+    def read(self):
 
-        if(read_opt == self.BATTERY_VOLTAGE):
-            
-            adc0_raw = self.adc0.read_u16()
-            adc0_voltage = adc0_raw * self.adc0_conversion_factor
-            
-            return { 'raw': adc0_raw, 'value': adc0_voltage, 'unit': 'V' }
-        
-        elif(read_opt == self.PANEL_VOLTAGE):
-            
-            adc1_raw = self.adc1.read_u16()
-            adc1_voltage = adc1_raw * self.adc1_conversion_factor
-            
-            return { 'raw': adc1_raw, 'value': adc1_voltage, 'unit': 'V' }
+        # Reading ADCs
+        adc0_raw = self.adc0.read_u16()
+        adc1_raw = self.adc1.read_u16()
+        vsys_raw = self.vsys.read_u16()
 
-        elif(read_opt == self.VSYS_VOLTAGE):
-            
-            vsys_raw = self.vsys.read_u16()
-            vsys_voltage = vsys_raw * self.vsys_conversion_factor
-            
-            return { 'raw': vsys_raw, 'value': vsys_voltage, 'unit': 'V' }
+        # Converting to voltage values
+        adc0_voltage = adc0_raw * self.adc0_conversion_factor
+        adc1_voltage = adc1_raw * self.adc1_conversion_factor
+        vsys_voltage = vsys_raw * self.vsys_conversion_factor
 
-        elif(read_opt == self.BATTERY_PERCENTAGE):
-            
-            adc0_raw = self.adc0.read_u16()
-            adc0_voltage = adc0_raw * self.adc0_conversion_factor
-            battery_percentage = 100 * (adc0_voltage - self.battery_min_voltage) / (self.battery_max_voltage - self.battery_min_voltage)
-            
-            # Treat limits
-            if battery_percentage > 100:
-                battery_percentage = 100
-            elif battery_percentage < 0:
-                battery_percentage = 0
-            
-            return { 'raw': adc0_raw, 'value': battery_percentage, 'unit': '%' }
+        battery_percentage = 100 * (adc0_voltage - self.battery_min_voltage) / (
+            self.battery_max_voltage - self.battery_min_voltage)
+        # Treating limits
+        if battery_percentage > 100:
+            battery_percentage = 100
+        elif battery_percentage < 0:
+            battery_percentage = 0
 
-        else:
-            return { 'raw': {}, 'value': 0.0, 'unit': '' }
+        return {
+            
+            'battery_voltage': { 'raw': adc0_raw, 'value': adc0_voltage, 'unit': 'V' },
+            'solar_panel_voltage': { 'raw': adc1_raw, 'value': adc1_voltage, 'unit': 'V' },
+            'vsys_voltage': { 'raw': vsys_raw, 'value': vsys_voltage, 'unit': 'V' },
+            'battery_percentage': { 'raw': adc0_raw, 'value': battery_percentage, 'unit': '%' }
+        }
